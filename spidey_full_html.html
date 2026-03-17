@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>עולם ספיידרמן — קרב הבוסים</title>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f5f0;min-height:100vh;display:flex;justify-content:center;padding:1rem;direction:rtl}
+#root{width:100%;max-width:660px}
+button{font-family:inherit;cursor:pointer;direction:rtl}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:#f0efe8}
+::-webkit-scrollbar-thumb{background:#ccc;border-radius:99px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useEffect,useRef}=React;
+
+const PLAYERS={
+  venom:{id:"venom",name:"ונום",emoji:"🖤",color:"#534AB7",light:"#EEEDFE",dark:"#3C3489",hp:130,desc:"לוחם סימביוט עמיד. המון HP!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="28" ry="30" fill="#1a1a2e"/><ellipse cx="40" cy="38" rx="24" ry="26" fill="#16213e"/><ellipse cx="30" cy="32" rx="9" ry="6" fill="white"/><ellipse cx="50" cy="32" rx="9" ry="6" fill="white"/><ellipse cx="30" cy="32" rx="5" ry="4" fill="#0f3460"/><ellipse cx="50" cy="32" rx="5" ry="4" fill="#0f3460"/><path d="M24 50 Q40 65 56 50" stroke="white" strokeWidth="2" fill="none"/><line x1="28" y1="52" x2="28" y2="58" stroke="white" strokeWidth="1.5"/><line x1="33" y1="55" x2="33" y2="61" stroke="white" strokeWidth="1.5"/><line x1="40" y1="57" x2="40" y2="63" stroke="white" strokeWidth="1.5"/><line x1="47" y1="55" x2="47" y2="61" stroke="white" strokeWidth="1.5"/><line x1="52" y1="52" x2="52" y2="58" stroke="white" strokeWidth="1.5"/><ellipse cx="40" cy="60" rx="6" ry="4" fill="#cc0000"/><path d="M20 30 Q15 20 18 12" stroke="#1a1a2e" strokeWidth="4" fill="none" strokeLinecap="round"/><path d="M60 28 Q66 18 62 10" stroke="#1a1a2e" strokeWidth="4" fill="none" strokeLinecap="round"/></svg>),
+    moves:[{name:"מלקחי סימביוט",icon:"🖤",dmg:[18,26],desc:"מלקחי שוט"},{name:"עקיצת ונום",icon:"🦷",dmg:[22,32],desc:"נשיכה רעילה"},{name:"אנחנו ונום",icon:"😤",dmg:[28,38],desc:"מכה ענקית"},{name:"מגן סימביוט",icon:"🛡️",dmg:[6,10],desc:"חסימה + פגיעה",sp:"protect"},{name:"התחמקות מלקחים",icon:"💨",dmg:[0,0],desc:"התחמק מהמתקפה!",sp:"dodge"},{name:"יללת סוניק",icon:"🔊",dmg:[32,44],desc:"צרחה מדהימה!",sp:"power"}]},
+  peter:{id:"peter",name:"ספיידרמן",emoji:"🕷️",color:"#E24B4A",light:"#FCEBEB",dark:"#A32D2D",hp:100,desc:"פיטר פארקר. מהיר וחכם!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="26" ry="28" fill="#cc1111"/><line x1="40" y1="14" x2="40" y2="70" stroke="#880000" strokeWidth="0.8"/><line x1="14" y1="42" x2="66" y2="42" stroke="#880000" strokeWidth="0.8"/><line x1="22" y1="22" x2="58" y2="62" stroke="#880000" strokeWidth="0.8"/><line x1="58" y1="22" x2="22" y2="62" stroke="#880000" strokeWidth="0.8"/><ellipse cx="40" cy="42" rx="8" ry="8" fill="none" stroke="#880000" strokeWidth="0.8"/><ellipse cx="40" cy="42" rx="16" ry="16" fill="none" stroke="#880000" strokeWidth="0.8"/><ellipse cx="40" cy="42" rx="24" ry="24" fill="none" stroke="#880000" strokeWidth="0.8"/><ellipse cx="29" cy="34" rx="10" ry="7" fill="white"/><ellipse cx="51" cy="34" rx="10" ry="7" fill="white"/><ellipse cx="29" cy="34" rx="6" ry="5" fill="#ddd"/><ellipse cx="51" cy="34" rx="6" ry="5" fill="#ddd"/></svg>),
+    moves:[{name:"יריית קורים",icon:"🕸️",dmg:[14,20],desc:"קורי עכביש דביקים"},{name:"מכות מהירות",icon:"👊",dmg:[18,26],desc:"קומבו אגרופים"},{name:"טחינת קורים",icon:"💥",dmg:[22,32],desc:"מחבט לקיר!"},{name:"מגן קורים",icon:"🛡️",dmg:[5,10],desc:"חסימה + פגיעה",sp:"protect"},{name:"חוש עכביש",icon:"⚡",dmg:[0,0],desc:"התחמק מהמתקפה!",sp:"dodge"},{name:"קורי אש",icon:"🔥",dmg:[30,42],desc:"חולשת הסימביוט!",sp:"power"}]},
+  miles:{id:"miles",name:"מיילס מוראלס",emoji:"🕸️",color:"#185FA5",light:"#E6F1FB",dark:"#0C447C",hp:110,desc:"מכת ונום חשמלית וכוח הסוואה!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="26" ry="28" fill="#111111"/><path d="M14 42 Q20 30 40 28 Q60 30 66 42" stroke="#cc1111" strokeWidth="1.5" fill="none"/><line x1="40" y1="14" x2="40" y2="70" stroke="#cc1111" strokeWidth="0.8"/><line x1="22" y1="22" x2="58" y2="62" stroke="#cc1111" strokeWidth="0.8"/><line x1="58" y1="22" x2="22" y2="62" stroke="#cc1111" strokeWidth="0.8"/><ellipse cx="40" cy="42" rx="12" ry="12" fill="none" stroke="#cc1111" strokeWidth="0.8"/><ellipse cx="40" cy="42" rx="22" ry="22" fill="none" stroke="#cc1111" strokeWidth="0.8"/><ellipse cx="29" cy="33" rx="11" ry="8" fill="white"/><ellipse cx="51" cy="33" rx="11" ry="8" fill="white"/><ellipse cx="29" cy="33" rx="7" ry="5" fill="#cce0ff"/><ellipse cx="51" cy="33" rx="7" ry="5" fill="#cce0ff"/><path d="M10 35 L14 38 L11 41 L15 44" stroke="#4488ff" strokeWidth="1.5" fill="none" strokeLinecap="round"/><path d="M70 35 L66 38 L69 41 L65 44" stroke="#4488ff" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>),
+    moves:[{name:"פיצוץ קורים",icon:"🕸️",dmg:[14,22],desc:"קורי עכביש של מיילס"},{name:"מכת ונום",icon:"⚡",dmg:[24,34],desc:"הלם חשמלי ביו!"},{name:"הסוואה",icon:"👻",dmg:[0,0],desc:"להיות בלתי נראה!",sp:"dodge"},{name:"מגן קורים",icon:"🛡️",dmg:[5,10],desc:"חסימה + פגיעה",sp:"protect"},{name:"מכת קפיצה",icon:"💥",dmg:[20,30],desc:"טיסה ומכה"},{name:"פיצוץ ביו-ונום",icon:"🔵",dmg:[32,44],desc:"מכת האולטימייט!",sp:"power"}]},
+  spidergirl:{id:"spidergirl",name:"ספיידר-גירל",emoji:"🩷",color:"#D4537E",light:"#FBEAF0",dark:"#72243E",hp:115,desc:"שילוב של פיטר ומיילס — זריזה, חשמלית וגיבורת קורים!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="26" ry="28" fill="#cc1177"/><line x1="40" y1="14" x2="40" y2="70" stroke="#880044" strokeWidth="0.8"/><line x1="14" y1="42" x2="66" y2="42" stroke="#880044" strokeWidth="0.8"/><line x1="22" y1="22" x2="58" y2="62" stroke="#880044" strokeWidth="0.8"/><line x1="58" y1="22" x2="22" y2="62" stroke="#880044" strokeWidth="0.8"/><ellipse cx="40" cy="42" rx="10" ry="10" fill="none" stroke="#880044" strokeWidth="0.8"/><ellipse cx="40" cy="42" rx="20" ry="20" fill="none" stroke="#880044" strokeWidth="0.8"/><ellipse cx="29" cy="33" rx="11" ry="8" fill="white"/><ellipse cx="51" cy="33" rx="11" ry="8" fill="white"/><ellipse cx="29" cy="33" rx="7" ry="5" fill="#ffccee"/><ellipse cx="51" cy="33" rx="7" ry="5" fill="#ffccee"/><path d="M16 18 Q20 8 28 14" stroke="#cc1177" strokeWidth="2.5" fill="none" strokeLinecap="round"/><path d="M64 18 Q60 8 52 14" stroke="#cc1177" strokeWidth="2.5" fill="none" strokeLinecap="round"/><path d="M10 32 L14 36 L11 40 L15 43" stroke="#ff44aa" strokeWidth="1.5" fill="none" strokeLinecap="round"/><path d="M70 32 L66 36 L69 40 L65 43" stroke="#ff44aa" strokeWidth="1.5" fill="none" strokeLinecap="round"/></svg>),
+    moves:[{name:"יריית קורים",icon:"🕸️",dmg:[14,22],desc:"קורים מהירים"},{name:"בעיטה חשמלית",icon:"⚡",dmg:[22,32],desc:"בעיטה מוגברת!"},{name:"התחמקות קפיצה",icon:"🩷",dmg:[0,0],desc:"התחמק מהמתקפה!",sp:"dodge"},{name:"מגן קורים",icon:"🛡️",dmg:[5,10],desc:"חסימה + פגיעה",sp:"protect"},{name:"עקיצת ונום",icon:"💥",dmg:[20,30],desc:"מכה ביו-חשמלית"},{name:"פיצוץ קורים ורודים",icon:"🌸",dmg:[34,46],desc:"מכת הכוח האולטימייט!",sp:"power"}]},
+};
+
+const WEATHERS=[
+  {name:"שמשי",icon:"☀️",desc:"+4 נזק לגיבור",dmgBonus:4,dmgPenalty:0,carnagePenalty:0},
+  {name:"גשום",icon:"🌧️",desc:"-5 נזק לגיבור",dmgBonus:0,dmgPenalty:5,carnagePenalty:0},
+  {name:"סוער",icon:"⛈️",desc:"כולם -3 נזק",dmgBonus:-3,storm:true,carnagePenalty:3},
+  {name:"ערפילי",icon:"🌫️",desc:"הגיבור עלול להחטיא 35%",dmgBonus:0,dmgPenalty:0,misschance:true,carnagePenalty:0},
+  {name:"רוחות חזקות",icon:"💨",desc:"התחמקות נותנת +1 תור",dmgBonus:0,dmgPenalty:0,windDodge:true,carnagePenalty:0},
+  {name:"שלג",icon:"❄️",desc:"הנבל -4 נזק",dmgBonus:0,dmgPenalty:0,carnagePenalty:4},
+];
+
+const LEVELS=[
+  {id:1,name:"שוקר",emoji:"🟡",hp:80,diff:"קל",desc:"פיצוצי רטט מהכפפות שלו. חימום טוב!",color:"#854F0B",light:"#FAEEDA",dark:"#633806",weakness:"web",winMsg:"הכפפות של שוקר רשותות בקורים! נגמר!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="26" ry="28" fill="#f5a623"/><rect x="18" y="28" width="44" height="28" rx="4" fill="#cc7700"/><rect x="22" y="32" width="16" height="10" rx="2" fill="#ffcc44"/><rect x="42" y="32" width="16" height="10" rx="2" fill="#ffcc44"/><circle cx="30" cy="37" r="3" fill="#ff8800"/><circle cx="50" cy="37" r="3" fill="#ff8800"/><rect x="26" y="48" width="28" height="5" rx="2" fill="#aa5500"/></svg>),
+    moves:[{name:"פיצוץ רטט",icon:"🟡",dmg:[12,18]},{name:"גל הלם",icon:"💥",dmg:[16,22]},{name:"טחינת כפפה",icon:"👊",dmg:[14,20]},{name:"דופק השתקה",icon:"⚡",dmg:[8,14],sp:"stun"}]},
+  {id:2,name:"הנשר",emoji:"🦅",hp:90,diff:"קל",desc:"זקן עם כנפיים שצולל מלמעלה!",color:"#3B6D11",light:"#EAF3DE",dark:"#27500A",weakness:"web",winMsg:"כנפי הנשר רשותות בקורים! הוא קורס!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="45" rx="22" ry="24" fill="#4a7c3f"/><ellipse cx="40" cy="36" rx="18" ry="18" fill="#5a8c4f"/><path d="M18 38 Q8 25 12 15 Q20 28 22 38" fill="#3a6030"/><path d="M62 38 Q72 25 68 15 Q60 28 58 38" fill="#3a6030"/><ellipse cx="33" cy="34" rx="6" ry="5" fill="#88aa44"/><ellipse cx="47" cy="34" rx="6" ry="5" fill="#88aa44"/><circle cx="33" cy="34" r="3" fill="#223311"/><circle cx="47" cy="34" r="3" fill="#223311"/><path d="M36 42 L40 50 L44 42" fill="#cc9900"/></svg>),
+    moves:[{name:"מתקפת צלילה",icon:"🦅",dmg:[14,20]},{name:"חיתוך טפרים",icon:"✂️",dmg:[16,24]},{name:"פצצת צלילה",icon:"💨",dmg:[18,26]},{name:"ניפוף כנפיים",icon:"🌪️",dmg:[10,16],sp:"stun"}]},
+  {id:3,name:"העקרב",emoji:"🦂",hp:100,diff:"בינוני",desc:"זנב מכני עם עקיצה רעילה!",color:"#3B6D11",light:"#EAF3DE",dark:"#27500A",weakness:"web",winMsg:"זנב העקרב רשוּת בקורים! הוא לא יכול לעקוץ!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="24" ry="26" fill="#2d6e2d"/><ellipse cx="40" cy="38" rx="20" ry="20" fill="#3a8a3a"/><ellipse cx="30" cy="33" rx="7" ry="5" fill="#1a4a1a"/><ellipse cx="50" cy="33" rx="7" ry="5" fill="#1a4a1a"/><circle cx="30" cy="33" r="3.5" fill="#00cc00"/><circle cx="50" cy="33" r="3.5" fill="#00cc00"/><path d="M28 46 Q40 54 52 46" stroke="#1a4a1a" strokeWidth="2" fill="none"/><path d="M55 25 Q68 15 70 5" stroke="#2d6e2d" strokeWidth="5" fill="none" strokeLinecap="round"/><circle cx="71" cy="4" r="4" fill="#cc4400"/></svg>),
+    moves:[{name:"מלקחי זנב",icon:"🦂",dmg:[16,24]},{name:"עקיצה",icon:"💉",dmg:[20,28]},{name:"ריסוס חומצה",icon:"🟢",dmg:[18,26]},{name:"אחיזת מלקחיים",icon:"🤏",dmg:[12,18],sp:"stun"}]},
+  {id:4,name:"הקרנף",emoji:"🦏",hp:115,diff:"בינוני",desc:"חזק להפליא וכמעט בלתי עציר!",color:"#5F5E5A",light:"#F1EFE8",dark:"#2C2C2A",weakness:"web",winMsg:"הקרנף קשור לקיר בקורים! הוא לא יכול לזוז!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="44" rx="28" ry="28" fill="#888"/><ellipse cx="40" cy="40" rx="24" ry="22" fill="#aaa"/><ellipse cx="30" cy="35" rx="8" ry="6" fill="#666"/><ellipse cx="50" cy="35" rx="8" ry="6" fill="#666"/><circle cx="30" cy="35" r="4" fill="#222"/><circle cx="50" cy="35" r="4" fill="#222"/><ellipse cx="40" cy="20" rx="5" ry="12" fill="#777" transform="rotate(-5,40,20)"/><path d="M28 50 Q40 58 52 50" stroke="#555" strokeWidth="2" fill="none"/></svg>),
+    moves:[{name:"돌격 קרנף",icon:"🦏",dmg:[22,32]},{name:"נגיחת ראש",icon:"💥",dmg:[20,28]},{name:"מחיצת קרקע",icon:"👊",dmg:[18,26]},{name:"דהרה",icon:"🌪️",dmg:[14,22],sp:"stun"}]},
+  {id:5,name:"מיסטריו",emoji:"🎭",hp:110,diff:"בינוני",desc:"אדון האשליות! הוא מרמה את העיניים והמוח.",color:"#185FA5",light:"#E6F1FB",dark:"#0C447C",weakness:"power",winMsg:"האשליה נשברת! מיסטריו נכנע!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><circle cx="40" cy="38" r="28" fill="#88ccff" fillOpacity="0.3" stroke="#4499cc" strokeWidth="2"/><circle cx="40" cy="38" r="22" fill="#aaddff" fillOpacity="0.2"/><ellipse cx="32" cy="36" rx="5" ry="4" fill="#cc44ff"/><ellipse cx="48" cy="36" rx="5" ry="4" fill="#cc44ff"/><circle cx="32" cy="36" r="2.5" fill="#440066"/><circle cx="48" cy="36" r="2.5" fill="#440066"/><path d="M30 46 Q40 52 50 46" stroke="#cc44ff" strokeWidth="1.5" fill="none"/><ellipse cx="40" cy="66" rx="20" ry="8" fill="#44aaff" fillOpacity="0.4"/></svg>),
+    moves:[{name:"מכת אשליה",icon:"🎭",dmg:[16,24]},{name:"פצצת עשן",icon:"💨",dmg:[14,22],sp:"stun"},{name:"מתקפת הולוגרמה",icon:"🌀",dmg:[18,28]},{name:"תעלול מוחי",icon:"🧠",dmg:[20,30]}]},
+  {id:6,name:"הלטאה",emoji:"🦎",hp:120,diff:"בינוני",desc:"ד\"ר קונורס שהפך לזוחל ענק!",color:"#3B6D11",light:"#EAF3DE",dark:"#27500A",weakness:"power",winMsg:"התרופה עובדת! ד\"ר קונורס חזר לעצמו!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="44" rx="24" ry="26" fill="#2d7a2d"/><ellipse cx="40" cy="40" rx="20" ry="20" fill="#3a9a3a"/><ellipse cx="30" cy="33" rx="7" ry="5" fill="#1a4a1a"/><ellipse cx="50" cy="33" rx="7" ry="5" fill="#1a4a1a"/><circle cx="30" cy="33" r="3.5" fill="#ffcc00"/><circle cx="50" cy="33" r="3.5" fill="#ffcc00"/><circle cx="30" cy="33" r="1.5" fill="#000"/><circle cx="50" cy="33" r="1.5" fill="#000"/><ellipse cx="40" cy="50" rx="10" ry="6" fill="#2d7a2d"/><path d="M32 50 Q40 56 48 50" stroke="#1a4a1a" strokeWidth="1.5" fill="none"/><path d="M37 55 L40 62 L43 55" fill="#ff4444"/></svg>),
+    moves:[{name:"חיתוך טפרים",icon:"🦎",dmg:[18,26]},{name:"טאטוא זנב",icon:"🌀",dmg:[16,24]},{name:"נשיכת זוחל",icon:"🦷",dmg:[22,30]},{name:"קפיצת ציד",icon:"💥",dmg:[14,22],sp:"stun"}]},
+  {id:7,name:"גובלין ירוק",emoji:"🎃",hp:125,diff:"קשה",desc:"נורמן אוסבורן — יריב ספיידרמן הגדול ביותר!",color:"#3B6D11",light:"#EAF3DE",dark:"#27500A",weakness:"web",winMsg:"הגלשן של הגובלין קורס! ניו יורק בטוחה!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="44" rx="24" ry="26" fill="#2d7a2d"/><ellipse cx="40" cy="40" rx="20" ry="22" fill="#3a9a3a"/><polygon points="18,28 12,10 24,24" fill="#2d7a2d"/><polygon points="62,28 68,10 56,24" fill="#2d7a2d"/><ellipse cx="30" cy="34" rx="8" ry="5" fill="#ffcc00"/><ellipse cx="50" cy="34" rx="8" ry="5" fill="#ffcc00"/><circle cx="30" cy="34" r="3" fill="#aa0000"/><circle cx="50" cy="34" r="3" fill="#aa0000"/><path d="M24 50 Q32 44 40 48 Q48 44 56 50" stroke="#1a4a1a" strokeWidth="2" fill="none"/><path d="M26 52 Q40 62 54 52" stroke="#1a4a1a" strokeWidth="2" fill="#1a4a1a"/><ellipse cx="40" cy="22" rx="20" ry="6" fill="#1a5a1a"/><polygon points="40,2 26,22 54,22" fill="#1a5a1a"/></svg>),
+    moves:[{name:"פצצת דלעת",icon:"🎃",dmg:[20,28]},{name:"חיתוך גלשן",icon:"🛸",dmg:[16,24]},{name:"צחוק הגובלין",icon:"😈",dmg:[24,34]},{name:"מטח פצצות",icon:"💣",dmg:[12,20],sp:"stun"}]},
+  {id:8,name:"קינגפין",emoji:"💼",hp:130,diff:"קשה",desc:"וילסון פיסק — אדון הפשע של ניו יורק!",color:"#5F5E5A",light:"#F1EFE8",dark:"#2C2C2A",weakness:"web",winMsg:"קינגפין קשור בקורים! אימפריית הפשע שלו קורסת!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="46" rx="30" ry="28" fill="#f0e8d0"/><ellipse cx="40" cy="42" rx="26" ry="24" fill="#f5eed8"/><rect x="16" y="58" width="48" height="20" rx="4" fill="#222"/><rect x="34" y="58" width="12" height="20" fill="#fff"/><polygon points="40,60 37,72 40,76 43,72" fill="#cc0000"/><ellipse cx="30" cy="38" rx="6" ry="5" fill="#ddd"/><ellipse cx="50" cy="38" rx="6" ry="5" fill="#ddd"/><circle cx="30" cy="38" r="3" fill="#222"/><circle cx="50" cy="38" r="3" fill="#222"/><path d="M28 52 Q40 58 52 52" stroke="#888" strokeWidth="1.5" fill="none"/></svg>),
+    moves:[{name:"אגרוף עוצמה",icon:"💼",dmg:[20,30]},{name:"מכת מקל",icon:"🦯",dmg:[18,26]},{name:"טחינת בוס הפשע",icon:"💪",dmg:[24,34]},{name:"כנופיה שכורה",icon:"👥",dmg:[14,22],sp:"stun"}]},
+  {id:9,name:"דוקטור אוקטופוס",emoji:"🐙",hp:140,diff:"קשה",desc:"4 מחושי מתכת — מדען גאון שהפך לרשע!",color:"#854F0B",light:"#FAEEDA",dark:"#633806",weakness:"power",winMsg:"מחושי דוק אוק קשורים בקורים! המדע ניצח!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="22" ry="24" fill="#cc8800"/><ellipse cx="29" cy="34" rx="10" ry="8" fill="#884400"/><ellipse cx="51" cy="34" rx="10" ry="8" fill="#884400"/><ellipse cx="29" cy="34" rx="7" ry="6" fill="#22aaff"/><ellipse cx="51" cy="34" rx="7" ry="6" fill="#22aaff"/><circle cx="29" cy="34" r="3" fill="#0055aa"/><circle cx="51" cy="34" r="3" fill="#0055aa"/><path d="M18 42 Q6 32 8 18" stroke="#884400" strokeWidth="5" fill="none" strokeLinecap="round"/><path d="M18 50 Q4 50 6 64" stroke="#884400" strokeWidth="5" fill="none" strokeLinecap="round"/><path d="M62 42 Q74 32 72 18" stroke="#884400" strokeWidth="5" fill="none" strokeLinecap="round"/><path d="M62 50 Q76 50 74 64" stroke="#884400" strokeWidth="5" fill="none" strokeLinecap="round"/></svg>),
+    moves:[{name:"אחיזת מחוש",icon:"🐙",dmg:[20,28],sp:"stun"},{name:"טחינת מתכת",icon:"🔩",dmg:[22,32]},{name:"מתקפת סיבוב",icon:"🌀",dmg:[18,26]},{name:"מכת ארבעת הזרועות",icon:"💪",dmg:[26,38]}]},
+  {id:10,name:"אלקטרו",emoji:"⚡",hp:130,diff:"קשה",desc:"מקס דילון — ברק חי! קשה לפגוע בו!",color:"#185FA5",light:"#E6F1FB",dark:"#0C447C",weakness:"power",winMsg:"קצר חשמלי! אלקטרו מפסיק לפעול!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="24" ry="26" fill="#2244aa"/><path d="M20 30 L35 28 L28 42 L38 40 L26 58 L42 44 L36 46 L48 28 L38 30 L44 16 Z" fill="#ffee00" fillOpacity="0.9"/><circle cx="30" cy="36" r="4" fill="#ffee00"/><circle cx="52" cy="34" r="4" fill="#ffee00"/><circle cx="30" cy="36" r="2" fill="#ff8800"/><circle cx="52" cy="34" r="2" fill="#ff8800"/></svg>),
+    moves:[{name:"ברק",icon:"⚡",dmg:[22,32]},{name:"כלוב חשמלי",icon:"🔵",dmg:[16,24],sp:"stun"},{name:"מחיאת כפים רעמית",icon:"💥",dmg:[26,36]},{name:"גל עוצמה",icon:"🌩️",dmg:[20,30]}]},
+  {id:11,name:"הארי אוסבורן",emoji:"🎭",hp:135,diff:"קשה",desc:"החבר הכי טוב של פיטר שהפך לנבל!",color:"#3B6D11",light:"#EAF3DE",dark:"#27500A",weakness:"web",winMsg:"הארי מתעשת! הידידות ניצחת!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="44" rx="24" ry="26" fill="#2d7a2d"/><ellipse cx="40" cy="40" rx="20" ry="20" fill="#3a9a3a"/><polygon points="18,30 14,12 26,26" fill="#2d7a2d"/><polygon points="62,30 66,12 54,26" fill="#2d7a2d"/><ellipse cx="30" cy="34" rx="7" ry="5" fill="#ffcc00"/><ellipse cx="50" cy="34" rx="7" ry="5" fill="#ffcc00"/><circle cx="30" cy="34" r="3" fill="#883300"/><circle cx="50" cy="34" r="3" fill="#883300"/><path d="M26 50 Q40 60 54 50" stroke="#1a4a1a" strokeWidth="2" fill="none"/><path d="M26 40 Q24 46 26 50" stroke="#aaddff" strokeWidth="1.5" fill="none"/></svg>),
+    moves:[{name:"עטלפי תער",icon:"🦇",dmg:[18,28]},{name:"דחיפת גלשן",icon:"🛸",dmg:[20,30]},{name:"בגידת ידידות",icon:"💔",dmg:[24,34]},{name:"זריקת פצצה",icon:"💣",dmg:[14,22],sp:"stun"}]},
+  {id:12,name:"קראון",emoji:"🏹",hp:140,diff:"קשה",desc:"הצייד הגדול ביותר שחי. הוא רוצה את ספיידרמן כגביע!",color:"#854F0B",light:"#FAEEDA",dark:"#633806",weakness:"power",winMsg:"קראון הובס! הציד הסתיים!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="44" rx="24" ry="26" fill="#8B4513"/><ellipse cx="40" cy="40" rx="20" ry="22" fill="#A0522D"/><ellipse cx="30" cy="34" rx="7" ry="6" fill="#6B3410"/><ellipse cx="50" cy="34" rx="7" ry="6" fill="#6B3410"/><circle cx="30" cy="34" r="3.5" fill="#cc6600"/><circle cx="50" cy="34" r="3.5" fill="#cc6600"/><circle cx="30" cy="34" r="1.5" fill="#000"/><circle cx="50" cy="34" r="1.5" fill="#000"/><path d="M22 44 Q26 52 30 56 Q40 60 50 56 Q54 52 58 44" fill="#6B3410"/><rect x="18" y="22" width="44" height="6" rx="3" fill="#cc4400"/></svg>),
+    moves:[{name:"זריקת חנית",icon:"🏹",dmg:[22,32]},{name:"קפיצת ציד",icon:"🐆",dmg:[24,34]},{name:"חץ רעל",icon:"💉",dmg:[18,26],sp:"stun"},{name:"שאגה פראית",icon:"🦁",dmg:[20,30]}]},
+  {id:13,name:"קארנאג\'",emoji:"🩸",hp:155,diff:"קשה מאוד",desc:"כאוס טהור — אש היא החולשה שלו!",color:"#791F1F",light:"#FCEBEB",dark:"#501313",weakness:"fire",winMsg:"האש מנצחת את הסימביוט! קארנאג\' נכלא!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="26" ry="28" fill="#8b0000"/><path d="M14 30 Q20 24 26 30" stroke="#cc0000" strokeWidth="3" fill="none"/><path d="M66 30 Q60 24 54 30" stroke="#cc0000" strokeWidth="3" fill="none"/><path d="M20 28 Q30 22 36 30" fill="white"/><path d="M60 28 Q50 22 44 30" fill="white"/><path d="M22 30 Q30 25 35 30" fill="#ff4444"/><path d="M58 30 Q50 25 45 30" fill="#ff4444"/><path d="M20 48 Q40 68 60 48" fill="#8b0000"/><path d="M20 48 Q40 64 60 48" stroke="white" strokeWidth="1.5" fill="none"/><line x1="30" y1="50" x2="31" y2="58" stroke="white" strokeWidth="1.5"/><line x1="40" y1="52" x2="41" y2="60" stroke="white" strokeWidth="1.5"/><line x1="50" y1="50" x2="51" y2="58" stroke="white" strokeWidth="1.5"/></svg>),
+    moves:[{name:"מלקחי חוטים",icon:"🩸",dmg:[24,34]},{name:"נשיכת קארנאג\'",icon:"🦷",dmg:[26,36]},{name:"טחינת כאוס",icon:"😈",dmg:[30,42]},{name:"אחיזת סימביוט",icon:"🐙",dmg:[16,22],sp:"stun"}]},
+  {id:14,name:"אנטי-ונום",emoji:"🩶",hp:160,diff:"קשה מאוד",desc:"סימביוט מטוהר — חזק וכמעט חסין לאש!",color:"#444441",light:"#F1EFE8",dark:"#2C2C2A",weakness:"sonic",winMsg:"הסימביוט של אנטי-ונום מטוהר! ניצחון!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="26" ry="28" fill="#cccccc"/><ellipse cx="40" cy="38" rx="22" ry="24" fill="#eeeeee"/><path d="M14 32 Q20 22 30 28" stroke="#aaaaaa" strokeWidth="3" fill="none"/><path d="M66 32 Q60 22 50 28" stroke="#aaaaaa" strokeWidth="3" fill="none"/><ellipse cx="30" cy="32" rx="9" ry="6" fill="#222"/><ellipse cx="50" cy="32" rx="9" ry="6" fill="#222"/><ellipse cx="30" cy="32" rx="5" ry="4" fill="#555"/><ellipse cx="50" cy="32" rx="5" ry="4" fill="#555"/><path d="M24 50 Q40 64 56 50" stroke="#888" strokeWidth="2" fill="none"/><ellipse cx="40" cy="58" rx="5" ry="3" fill="#cc0000"/></svg>),
+    moves:[{name:"חוט לבן",icon:"🩶",dmg:[24,34]},{name:"טחינת טיהור",icon:"💢",dmg:[26,36]},{name:"סילוק סימביוט",icon:"🌟",dmg:[28,40]},{name:"אחיזת אפס",icon:"🤍",dmg:[18,26],sp:"stun"}]},
+  {id:15,name:"מורלון",emoji:"🌑",hp:165,diff:"קשה מאוד",desc:"ישות עתיקה שניזונה מכוחו של ספיידרמן!",color:"#3C3489",light:"#EEEDFE",dark:"#26215C",weakness:"power",winMsg:"מורלון נסוג! הטוטם של העכביש שרד!",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="24" ry="26" fill="#1a0a2e"/><ellipse cx="40" cy="38" rx="20" ry="22" fill="#2a1040"/><ellipse cx="30" cy="32" rx="8" ry="6" fill="#8800ff"/><ellipse cx="50" cy="32" rx="8" ry="6" fill="#8800ff"/><ellipse cx="30" cy="32" rx="5" ry="4" fill="#cc44ff"/><ellipse cx="50" cy="32" rx="5" ry="4" fill="#cc44ff"/><circle cx="30" cy="32" r="2" fill="#ffffff"/><circle cx="50" cy="32" r="2" fill="#ffffff"/><path d="M28 52 Q40 60 52 52" stroke="#8800ff" strokeWidth="1.5" fill="none"/></svg>),
+    moves:[{name:"שאיבת חיים",icon:"🌑",dmg:[26,36]},{name:"מכה עתיקה",icon:"⚫",dmg:[28,40]},{name:"מחיצת טוטם",icon:"💀",dmg:[32,44]},{name:"אחיזת נשמה",icon:"🖤",dmg:[20,28],sp:"stun"}]},
+  {id:16,name:"ונום הרשע",emoji:"😡",hp:170,diff:"בוס סופי",desc:"הבוס הסופי — ונום מושחת! סכנה קיצונית!",color:"#3C3489",light:"#EEEDFE",dark:"#26215C",weakness:"sonic",winMsg:"ונום הרשע הובס! כמעט שם...",
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="28" ry="30" fill="#0a0a1a"/><ellipse cx="40" cy="38" rx="24" ry="26" fill="#111130"/><ellipse cx="30" cy="32" rx="10" ry="7" fill="#cc0000"/><ellipse cx="50" cy="32" rx="10" ry="7" fill="#cc0000"/><ellipse cx="30" cy="32" rx="6" ry="5" fill="#ff4400"/><ellipse cx="50" cy="32" rx="6" ry="5" fill="#ff4400"/><circle cx="30" cy="32" r="2.5" fill="#ffaa00"/><circle cx="50" cy="32" r="2.5" fill="#ffaa00"/><path d="M18 50 Q40 72 62 50" fill="#0a0a1a"/><path d="M18 50 Q40 68 62 50" stroke="white" strokeWidth="2" fill="none"/><line x1="26" y1="51" x2="26" y2="61" stroke="white" strokeWidth="2"/><line x1="36" y1="54" x2="36" y2="64" stroke="white" strokeWidth="2"/><line x1="44" y1="54" x2="44" y2="64" stroke="white" strokeWidth="2"/><line x1="54" y1="51" x2="54" y2="61" stroke="white" strokeWidth="2"/><ellipse cx="40" cy="62" rx="8" ry="5" fill="#cc0000"/></svg>),
+    moves:[{name:"סימביוט חושך",icon:"🖤",dmg:[26,38]},{name:"נשיכה רשעה",icon:"🦷",dmg:[28,40]},{name:"אנחנו רשע",icon:"😡",dmg:[32,46]},{name:"גל סימביוט",icon:"🌑",dmg:[20,30],sp:"stun"}]},
+  {id:17,name:"חומצה",emoji:"☠️",hp:180,diff:"הבוס האמיתי",desc:"הבוס האולטימטיבי. מפרק קורים, מרעיל, ומפיק מיניונים. 180 HP של אימה טהורה!",color:"#1a5c1a",light:"#d4f5d4",dark:"#0a2e0a",weakness:"electric",winMsg:"חומצה הומסה! אתה הגיבור האולטימטיבי! 🌍",acidMeltsWebs:true,poisonDmgPerTurn:4,
+    face:({size=80})=>(<svg width={size} height={size} viewBox="0 0 80 80"><ellipse cx="40" cy="42" rx="28" ry="30" fill="#1a6600"/><ellipse cx="40" cy="38" rx="24" ry="26" fill="#228800"/><ellipse cx="28" cy="50" rx="6" ry="4" fill="#00ff44" fillOpacity="0.6"/><ellipse cx="52" cy="54" rx="5" ry="3" fill="#00ff44" fillOpacity="0.5"/><ellipse cx="30" cy="30" rx="10" ry="8" fill="#003300"/><ellipse cx="50" cy="30" rx="10" ry="8" fill="#003300"/><ellipse cx="30" cy="30" rx="7" ry="6" fill="#00cc00"/><ellipse cx="50" cy="30" rx="7" ry="6" fill="#00cc00"/><circle cx="30" cy="30" r="3" fill="#00ff00"/><circle cx="50" cy="30" r="3" fill="#00ff00"/><circle cx="30" cy="30" r="1.2" fill="#ffffff"/><circle cx="50" cy="30" r="1.2" fill="#ffffff"/><path d="M18 50 Q40 70 62 50" fill="#1a6600"/><path d="M18 50 Q40 66 62 50" stroke="#00ff44" strokeWidth="2" fill="none"/><line x1="24" y1="51" x2="24" y2="60" stroke="#00ff44" strokeWidth="2"/><line x1="33" y1="54" x2="33" y2="63" stroke="#00ff44" strokeWidth="2"/><line x1="40" y1="55" x2="40" y2="64" stroke="#00ff44" strokeWidth="2"/><line x1="47" y1="54" x2="47" y2="63" stroke="#00ff44" strokeWidth="2"/><line x1="56" y1="51" x2="56" y2="60" stroke="#00ff44" strokeWidth="2"/><ellipse cx="40" cy="62" rx="9" ry="5" fill="#00aa22"/><path d="M14 22 Q8 12 12 4" stroke="#00ff44" strokeWidth="3" fill="none" strokeLinecap="round"/><path d="M66 22 Q72 12 68 4" stroke="#00ff44" strokeWidth="3" fill="none" strokeLinecap="round"/><circle cx="12" cy="3" r="3" fill="#00ff44"/><circle cx="68" cy="3" r="3" fill="#00ff44"/></svg>),
+    moves:[{name:"ריסוס חומצה",icon:"🟢",dmg:[28,40],sp:"poison"},{name:"טחינת בוץ",icon:"💚",dmg:[30,44]},{name:"המסת קורים",icon:"🫧",dmg:[24,36],sp:"webmelt"},{name:"הפקת מיניון",icon:"☣️",dmg:[16,24],sp:"minion"},{name:"נובה חומצה",icon:"☠️",dmg:[36,50]}]},
+];
+
+const DIFF_COLOR={"קל":{bg:"#EAF3DE",col:"#27500A"},"בינוני":{bg:"#FAEEDA",col:"#633806"},"קשה":{bg:"#FCEBEB",col:"#791F1F"},"קשה מאוד":{bg:"#EEEDFE",col:"#26215C"},"בוס סופי":{bg:"#0a0a1a",col:"#ffaa00"},"הבוס האמיתי":{bg:"#003300",col:"#00ff44"}};
+const MAX_LIVES=3;
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+
+function HpBar({pct,color}){
+  return <div style={{background:"#e8e8e0",borderRadius:99,height:10,overflow:"hidden"}}>
+    <div style={{width:Math.max(0,pct)+"%",height:10,borderRadius:99,background:color,transition:"width 0.4s"}}/>
+  </div>;
+}
+
+function FaceAnim({FaceComp,pulse=false,size=72}){
+  const[frame,setFrame]=useState(0);
+  useEffect(()=>{if(!pulse)return;const t=setInterval(()=>setFrame(f=>f+1),800);return()=>clearInterval(t);},[pulse]);
+  const scale=pulse?(1+Math.sin(frame)*0.04):1;
+  return <div style={{transform:`scale(${scale})`,transition:"transform 0.4s",display:"inline-block"}}><FaceComp size={size}/></div>;
+}
+
+function App(){
+  const[screen,setScreen]=useState("title");
+  const[selectedPlayer,setSelectedPlayer]=useState(null);
+  const[levelIdx,setLevelIdx]=useState(0);
+  const[lives,setLives]=useState(MAX_LIVES);
+  const[game,setGame]=useState(null);
+  const logRef=useRef(null);
+  useEffect(()=>{if(logRef.current)logRef.current.scrollTop=logRef.current.scrollHeight;},[game?.logs]);
+
+  function startLevel(playerKey,lvlIdx,currentLives){
+    const p=PLAYERS[playerKey];const lv=LEVELS[lvlIdx];const w=WEATHERS[rnd(0,WEATHERS.length-1)];
+    setGame({player:{...p,curHP:p.hp},boss:{...lv,curHP:lv.hp},weather:w,weatherRounds:rnd(2,3),turn:"player",
+      logs:[`🎮 שלב ${lv.id}: ${p.name} מתמודד נגד ${lv.name}! מזג אוויר: ${w.icon} ${w.name} — ${w.desc}`],
+      over:false,winner:null,dodge:0,protect:false,poisoned:false,poisonTurns:0,websMelted:false,minionActive:false});
+    setLives(currentLives);setScreen("battle");
+  }
+
+  function addLog(g,msg){return{...g,logs:[...g.logs.slice(-6),msg]};}
+  function nextWeather(g){
+    if(g.weatherRounds<=1){const w=WEATHERS[rnd(0,WEATHERS.length-1)];return{...g,weather:w,weatherRounds:rnd(2,3),logs:[...g.logs.slice(-6),`🌤️ מזג אוויר השתנה ל${w.icon} ${w.name} — ${w.desc}!`]};}
+    return{...g,weatherRounds:g.weatherRounds-1};
+  }
+
+  function playerMove(move){
+    if(!game||game.over||game.turn!=="player")return;
+    let g={...game,logs:[...game.logs]};
+    if(g.websMelted&&(move.icon==="🕸️"||move.name==="מגן קורים"||move.name==="טחינת קורים")){
+      g=addLog(g,"🫧 חומצה המסה את הקורים שלך! הצעד הזה לא יעבוד! בחר אחר.");setGame(g);return;
+    }
+    if(move.sp==="dodge"){
+      g.dodge=game.weather.windDodge?2:1;
+      g=addLog(g,`${move.icon} ${game.player.name} משתמש ב${move.name}!${game.weather.windDodge?" הרוח עוזרת!":""}`);
+      g=nextWeather(g);g.turn="boss";setGame(g);setTimeout(()=>bossMove(g),1200);return;
+    }
+    let miss=game.weather.misschance&&Math.random()<0.35&&move.sp!=="protect";
+    let msg="";
+    if(miss){msg=`${move.icon} ${move.name} — הערפל גורם להחטאה!`;}
+    else if(move.sp==="protect"){
+      g.protect=true;const d=rnd(move.dmg[0],move.dmg[1]);g.boss={...g.boss,curHP:g.boss.curHP-d};
+      msg=`🛡️ מגן למעלה! ${move.name} פוגע ב${game.boss.name} ב${d} נזק.`;
+    }else if(move.sp==="power"){
+      let d=rnd(move.dmg[0],move.dmg[1]);
+      if(game.weather.dmgBonus>0)d+=game.weather.dmgBonus;
+      if(game.weather.storm)d=Math.max(1,d-3);d=Math.max(1,d);
+      const isWeak=(move.icon==="🔥"&&game.boss.weakness==="fire")||(move.icon==="🔊"&&game.boss.weakness==="sonic")||(move.icon==="🔵"&&game.boss.weakness==="power")||(move.icon==="🌸"&&game.boss.weakness==="electric")||(move.icon==="🕸️"&&game.boss.weakness==="web");
+      if(isWeak)d+=18;
+      g.boss={...g.boss,curHP:g.boss.curHP-d};
+      msg=`${move.icon} ${move.name} פוגע ב${d} נזק!${isWeak?" 🎯 פגיעה בחולשה!":""}`;
+    }else{
+      let d=rnd(move.dmg[0],move.dmg[1])+(game.weather.dmgBonus||0)-(game.weather.dmgPenalty||0);
+      if(game.weather.storm)d-=3;
+      if(game.boss.weakness==="electric"&&(move.icon==="⚡"||move.name==="בעיטה חשמלית"||move.name==="מכת ונום"))d+=12;
+      d=Math.max(1,d);
+      const pows=["בום!","קראק!","תוויפ!","וואם!","פוו!","זאפ!"];
+      msg=`${move.icon} ${pows[rnd(0,5)]} ${move.name} פוגע ב${d} נזק!`;
+      g.boss={...g.boss,curHP:g.boss.curHP-d};
+    }
+    g=addLog(g,msg);g=nextWeather(g);
+    if(g.boss.curHP<=0){g.over=true;g.winner="player";g=addLog(g,`🎉 ${game.boss.winMsg}`);setGame(g);return;}
+    g.turn="boss";setGame(g);setTimeout(()=>bossMove(g),1200);
+  }
+
+  function bossMove(cg){
+    setGame(prev=>{
+      let g=cg||prev;if(g.over)return g;
+      const lv=g.boss;const m=lv.moves[rnd(0,lv.moves.length-1)];let msg="";
+      if(g.poisoned&&g.poisonTurns>0){
+        const pd=lv.poisonDmgPerTurn||4;
+        g={...g,player:{...g.player,curHP:g.player.curHP-pd},poisonTurns:g.poisonTurns-1};
+        if(g.poisonTurns===0)g={...g,poisoned:false};
+        g=addLog(g,`☣️ הרעל שורף ${pd} נזק! ${g.poisonTurns>0?g.poisonTurns+" תורות נשארו":"הרעל נגמר!"}`);
+        if(g.player.curHP<=0){g.over=true;g.winner="boss";g=addLog(g,"💀 הומס על ידי הרעל!");return g;}
+      }
+      if(g.minionActive){
+        const md=rnd(8,14);g={...g,player:{...g.player,curHP:g.player.curHP-md}};
+        g=addLog(g,`☣️ מיניון חומצה תוקף ב${md} נזק נוסף!`);
+        if(g.player.curHP<=0){g.over=true;g.winner="boss";g=addLog(g,"💀 הוצף על ידי מיניוני חומצה!");return g;}
+      }
+      if(g.dodge>0){
+        msg=`${m.icon} ${lv.name} מנסה ${m.name}... התחמקת! אין נזק!`;g=addLog({...g,dodge:g.dodge-1},msg);
+      }else if(g.protect&&m.sp!=="poison"&&m.sp!=="webmelt"){
+        let d=Math.max(1,rnd(m.dmg[0],m.dmg[1])-(g.weather.carnagePenalty||0)-(g.weather.storm?3:0));
+        const red=Math.floor(d*0.35);
+        g=addLog({...g,protect:false,player:{...g.player,curHP:g.player.curHP-red}},`${m.icon} המגן בולם את ${m.name}! רק ${red} נזק!`);
+      }else{
+        let d=Math.max(1,rnd(m.dmg[0],m.dmg[1])-(g.weather.carnagePenalty||0)-(g.weather.storm?3:0));
+        if(m.sp==="poison"){g={...g,poisoned:true,poisonTurns:3};msg=`🟢 ריסוס חומצה! ${d} נזק + הורעלת ל3 תורות! ☣️`;g={...g,player:{...g.player,curHP:g.player.curHP-d}};}
+        else if(m.sp==="webmelt"){g={...g,websMelted:true};msg=`🫧 המסת קורים! הקורים הומסו — מהלכי קורים חסומים! +${d} נזק!`;g={...g,player:{...g.player,curHP:g.player.curHP-d}};}
+        else if(m.sp==="minion"){g={...g,minionActive:true};msg=`☣️ חומצה מפיקה מיניון! ${d} נזק + מיניון תוקף כל תור!`;g={...g,player:{...g.player,curHP:g.player.curHP-d}};}
+        else{msg=`${m.icon} וואם! ${m.name} של ${lv.name} פוגע ב${d} נזק!`;g={...g,player:{...g.player,curHP:g.player.curHP-d}};}
+        g=addLog(g,msg);
+      }
+      if(g.player.curHP<=0){g.over=true;g.winner="boss";g=addLog(g,`💀 ${g.player.name} נפל!`);}
+      else{g.turn="player";}
+      return g;
+    });
+  }
+
+  const card={background:"#fff",border:"0.5px solid #ddd",borderRadius:12,padding:"1rem"};
+  const btn={background:"#fff",border:"0.5px solid #bbb",borderRadius:8,padding:"9px 10px",cursor:"pointer",fontFamily:"inherit",fontSize:13};
+
+  if(screen==="title")return(
+    <div style={{padding:"1.5rem",textAlign:"center"}}>
+      <div style={{fontSize:48,marginBottom:6}}>🕷️</div>
+      <h1 style={{fontSize:22,fontWeight:700,color:"#111",marginBottom:4}}>עולם ספיידרמן</h1>
+      <p style={{fontSize:13,color:"#666",marginBottom:"1.5rem"}}>17 שלבי בוס — מסתיים עם חומצה המפחיד! 3 חיים לכל שלב.</p>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:"1.5rem"}}>
+        {Object.values(PLAYERS).map(p=>(
+          <div key={p.id} onClick={()=>setSelectedPlayer(p.id)}
+            style={{...card,borderTop:`3px solid ${p.color}`,cursor:"pointer",outline:selectedPlayer===p.id?`2px solid ${p.color}`:"none"}}>
+            <div style={{marginBottom:8}}><FaceAnim FaceComp={p.face} pulse={selectedPlayer===p.id} size={60}/></div>
+            <div style={{fontSize:13,fontWeight:700,color:"#111",marginBottom:3}}>{p.name}</div>
+            <div style={{fontSize:11,color:"#666",marginBottom:6}}>{p.desc}</div>
+            <span style={{fontSize:11,background:p.light,color:p.dark,padding:"2px 8px",borderRadius:99}}>❤️ {p.hp} HP</span>
+          </div>
+        ))}
+      </div>
+      <div style={{background:"#f0efe8",borderRadius:10,padding:"10px 14px",marginBottom:"1.5rem",fontSize:12,color:"#555",textAlign:"right"}}>
+        <strong style={{color:"#111"}}>איך לשחק:</strong> יש לך <strong style={{color:"#111"}}>3 חיים</strong> לכל שלב. הפסד 3 פעמים → חזרה לשלב 1! נצח את כל 17 הבוסים כדי לנצח. 🏆 <strong style={{color:"#00aa22"}}>טיפ: מהלכים חשמליים מנצחים את חומצה!</strong>
+      </div>
+      {selectedPlayer
+        ?<button onClick={()=>{setLevelIdx(0);startLevel(selectedPlayer,0,MAX_LIVES);}}
+          style={{...btn,padding:"10px 32px",border:`1.5px solid ${PLAYERS[selectedPlayer].color}`,background:PLAYERS[selectedPlayer].light,color:PLAYERS[selectedPlayer].dark,fontSize:15,fontWeight:700}}>
+          התחל משחק ↗
+        </button>
+        :<p style={{fontSize:13,color:"#888"}}>בחר גיבור למעלה!</p>
+      }
+    </div>
+  );
+
+  if(screen==="levelup"){
+    const nextLv=LEVELS[levelIdx];const dc=DIFF_COLOR[nextLv.diff]||{bg:"#003300",col:"#00ff44"};
+    return(
+      <div style={{padding:"1.5rem",textAlign:"center"}}>
+        <div style={{fontSize:40,marginBottom:6}}>🏆</div>
+        <h2 style={{fontSize:20,fontWeight:700,color:"#111",marginBottom:4}}>שלב {levelIdx} הושלם!</h2>
+        <p style={{fontSize:13,color:"#666",marginBottom:"1.5rem"}}>בחר את הגיבור שלך לקרב הבא!</p>
+        <div style={{...card,marginBottom:"1.5rem",background:"#f9f9f6"}}>
+          <div style={{marginBottom:6}}><FaceAnim FaceComp={nextLv.face} pulse size={64}/></div>
+          <div style={{fontSize:15,fontWeight:700,color:"#111",marginBottom:4}}>שלב {nextLv.id}: {nextLv.name}</div>
+          <div style={{fontSize:12,color:"#666",marginBottom:8}}>{nextLv.desc}</div>
+          <div style={{display:"flex",justifyContent:"center",gap:8,flexWrap:"wrap"}}>
+            <span style={{fontSize:11,background:dc.bg,color:dc.col,padding:"2px 10px",borderRadius:99,fontWeight:700}}>{nextLv.diff}</span>
+            <span style={{fontSize:11,background:"#FCEBEB",color:"#791F1F",padding:"2px 10px",borderRadius:99}}>❤️ {nextLv.hp} HP</span>
+            {nextLv.acidMeltsWebs&&<span style={{fontSize:11,background:"#d4f5d4",color:"#0a2e0a",padding:"2px 10px",borderRadius:99}}>🫧 ממיס קורים!</span>}
+          </div>
+        </div>
+        <p style={{fontSize:12,color:"#666",marginBottom:10}}>בחר את הגיבור שלך — 3 חיים חדשים!</p>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:"1.5rem"}}>
+          {Object.values(PLAYERS).map(p=>(
+            <div key={p.id} onClick={()=>setSelectedPlayer(p.id)}
+              style={{...card,borderTop:`3px solid ${p.color}`,cursor:"pointer",outline:selectedPlayer===p.id?`2px solid ${p.color}`:"none"}}>
+              <div style={{marginBottom:4}}><FaceAnim FaceComp={p.face} pulse={selectedPlayer===p.id} size={52}/></div>
+              <div style={{fontSize:12,fontWeight:700,color:"#111",marginBottom:3}}>{p.name}</div>
+              <span style={{fontSize:11,background:p.light,color:p.dark,padding:"1px 6px",borderRadius:99}}>❤️ {p.hp}</span>
+            </div>
+          ))}
+        </div>
+        {selectedPlayer
+          ?<button onClick={()=>startLevel(selectedPlayer,levelIdx,MAX_LIVES)}
+            style={{...btn,padding:"10px 28px",border:`1.5px solid ${PLAYERS[selectedPlayer].color}`,background:PLAYERS[selectedPlayer].light,color:PLAYERS[selectedPlayer].dark,fontWeight:700}}>
+            קרב שלב {nextLv.id}! ↗
+          </button>
+          :<p style={{fontSize:13,color:"#888"}}>בחר גיבור למעלה!</p>
+        }
+      </div>
+    );
+  }
+
+  if(screen==="gameover")return(
+    <div style={{padding:"1.5rem",textAlign:"center"}}>
+      <div style={{fontSize:52,marginBottom:8}}>💀</div>
+      <h1 style={{fontSize:22,fontWeight:700,color:"#111",marginBottom:8}}>משחק נגמר!</h1>
+      <p style={{fontSize:14,color:"#666",marginBottom:"1.5rem"}}>הפסדת 3 פעמים בשלב {LEVELS[levelIdx].id} — {LEVELS[levelIdx].name}. חזרה להתחלה!</p>
+      <div style={{...card,marginBottom:"1.5rem",background:"#f9f9f6"}}>
+        <FaceAnim FaceComp={LEVELS[levelIdx].face} size={60}/>
+        <p style={{fontSize:13,color:"#666",marginTop:8}}>גיבורים אף פעם לא מוותרים — נסה שוב!</p>
+      </div>
+      <button onClick={()=>{setLevelIdx(0);setSelectedPlayer(null);setScreen("title");}}
+        style={{...btn,padding:"10px 28px",fontWeight:700,border:"0.5px solid #E24B4A",background:"#FCEBEB",color:"#A32D2D"}}>
+        נסה שוב משלב 1
+      </button>
+    </div>
+  );
+
+  if(screen==="gamecomplete")return(
+    <div style={{padding:"1.5rem",textAlign:"center"}}>
+      <div style={{fontSize:56,marginBottom:8}}>🏅</div>
+      <h1 style={{fontSize:22,fontWeight:700,color:"#111",marginBottom:8}}>ניצחת את המשחק!</h1>
+      <p style={{fontSize:14,color:"#666",marginBottom:"1.5rem"}}>כל 17 הנבלים הובסו — אפילו חומצה! אתה גיבור אמיתי!</p>
+      <div style={{display:"flex",justifyContent:"center",gap:8,marginBottom:"1.5rem",flexWrap:"wrap"}}>
+        {Object.values(PLAYERS).map(p=><FaceAnim key={p.id} FaceComp={p.face} pulse size={52}/>)}
+      </div>
+      <button onClick={()=>{setLevelIdx(0);setSelectedPlayer(null);setScreen("title");}} style={{...btn,padding:"10px 28px"}}>שחק שוב</button>
+    </div>
+  );
+
+  if(screen==="battle"&&game){
+    const{player,boss,weather,turn:t,logs,over,winner,dodge,protect,poisoned,poisonTurns,websMelted,minionActive}=game;
+    const sHPpct=player.curHP/player.hp*100,bHPpct=boss.curHP/boss.hp*100;
+    const dc=DIFF_COLOR[boss.diff]||{bg:"#003300",col:"#00ff44"};
+    const livesLeft=over&&winner==="boss"?lives-1:lives;
+    const isAcid=boss.acidMeltsWebs;
+    return(
+      <div style={{padding:"1rem"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,flexWrap:"wrap",gap:6}}>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:12,fontWeight:700,color:"#666"}}>שלב {boss.id}/17</span>
+            <span style={{fontSize:11,background:dc.bg,color:dc.col,padding:"1px 8px",borderRadius:99,fontWeight:700}}>{boss.diff}</span>
+          </div>
+          <div style={{display:"flex",gap:4,alignItems:"center"}}>
+            <span style={{fontSize:11,color:"#666"}}>חיים:</span>
+            {Array.from({length:MAX_LIVES}).map((_,i)=>(
+              <span key={i} style={{fontSize:14}}>{i<(over&&winner==="boss"?livesLeft:lives)?"❤️":"🖤"}</span>
+            ))}
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:5,padding:"4px 10px",borderRadius:8,background:"#f0efe8",border:"0.5px solid #ddd",fontSize:11}}>
+            <span style={{fontSize:14}}>{weather.icon}</span>
+            <span style={{fontWeight:700,color:"#111"}}>{weather.name}</span>
+            <span style={{color:"#666",fontSize:10}}>— {weather.desc}</span>
+          </div>
+        </div>
+        {isAcid&&(
+          <div style={{display:"flex",gap:6,marginBottom:8,flexWrap:"wrap"}}>
+            {poisoned&&<span style={{fontSize:11,background:"#d4f5d4",color:"#0a2e0a",padding:"2px 8px",borderRadius:99}}>☣️ מורעל ({poisonTurns} תורות)</span>}
+            {websMelted&&<span style={{fontSize:11,background:"#FAEEDA",color:"#633806",padding:"2px 8px",borderRadius:99}}>🫧 קורים הומסו!</span>}
+            {minionActive&&<span style={{fontSize:11,background:"#FCEBEB",color:"#791F1F",padding:"2px 8px",borderRadius:99}}>☣️ מיניון פעיל!</span>}
+          </div>
+        )}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:10}}>
+          {[
+            {label:player.name,FaceComp:player.face,hp:player.curHP,max:player.hp,pct:sHPpct,color:player.color,border:player.color,statusDodge:dodge>0,statusProt:protect,isPlayer:true},
+            {label:boss.name,FaceComp:boss.face,hp:boss.curHP,max:boss.hp,pct:bHPpct,color:boss.color,border:boss.color},
+          ].map((f,i)=>(
+            <div key={i} style={{...card,borderTop:`3px solid ${f.border}`,textAlign:"center"}}>
+              <FaceAnim FaceComp={f.FaceComp} pulse={t===(f.isPlayer?"player":"boss")&&!over} size={60}/>
+              <div style={{fontSize:12,fontWeight:700,color:"#111",marginBottom:5,marginTop:4}}>{f.label}</div>
+              <HpBar pct={f.pct} color={f.color}/>
+              <div style={{fontSize:11,fontWeight:700,color:"#111",marginTop:3}}>{Math.max(0,f.hp)} / {f.max}</div>
+              {f.statusDodge&&<div style={{marginTop:3}}><span style={{fontSize:10,background:"#EEEDFE",color:"#3C3489",padding:"1px 7px",borderRadius:99}}>⚡ מתחמק</span></div>}
+              {f.statusProt&&<div style={{marginTop:3}}><span style={{fontSize:10,background:"#EAF3DE",color:"#3B6D11",padding:"1px 7px",borderRadius:99}}>🛡️ מוגן</span></div>}
+            </div>
+          ))}
+        </div>
+        <div ref={logRef} style={{background:"#f0efe8",borderRadius:10,padding:"10px 12px",marginBottom:10,minHeight:72,maxHeight:120,overflowY:"auto",textAlign:"right"}}>
+          {logs.map((l,i)=>(
+            <div key={i} style={{fontSize:12,lineHeight:1.6,color:"#111",fontWeight:i===logs.length-1?700:400,padding:"1px 0"}}>{l}</div>
+          ))}
+        </div>
+        {!over&&(
+          <>
+            <div style={{textAlign:"center",marginBottom:7}}>
+              <span style={{fontSize:12,fontWeight:700,padding:"4px 12px",borderRadius:99,background:t==="player"?player.light:"#FCEBEB",color:t==="player"?player.dark:"#A32D2D"}}>
+                {t==="player"?`תור ${player.name}`:`${boss.name} תוקף...`}
+              </span>
+            </div>
+            {isAcid&&t==="player"&&<p style={{fontSize:11,color:"#00aa22",textAlign:"center",marginBottom:6}}>⚡ מהלכים חשמליים סופר אפקטיביים נגד חומצה!</p>}
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+              {player.moves.map((m,i)=>{
+                const isBlocked=websMelted&&(m.icon==="🕸️"||m.name==="מגן קורים"||m.name==="טחינת קורים");
+                return(
+                  <button key={i} disabled={t!=="player"} onClick={()=>playerMove(m)}
+                    style={{...btn,opacity:t==="player"?1:0.4,cursor:t==="player"?"pointer":"not-allowed",textAlign:"right",
+                      border:isBlocked?"0.5px solid #F7C1C1":"0.5px solid #bbb",
+                      background:isBlocked?"#FCEBEB":"#fff"}}>
+                    <div style={{fontSize:15,marginBottom:2}}>{m.icon}</div>
+                    <div style={{fontSize:12,fontWeight:700,color:isBlocked?"#A32D2D":"#111"}}>{m.name}{isBlocked?" 🚫":""}</div>
+                    <div style={{fontSize:10,color:"#666",marginTop:1}}>{m.sp==="dodge"?"התחמק מהמתקפה!":m.sp==="protect"?"חסום + "+m.dmg[0]+"-"+m.dmg[1]+" נזק":m.dmg[0]+"-"+m.dmg[1]+" נזק"}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+        {over&&(
+          <div style={{marginTop:10}}>
+            <div style={{textAlign:"center",padding:"1rem",borderRadius:10,background:winner==="player"?"#EAF3DE":"#FCEBEB",border:`0.5px solid ${winner==="player"?"#C0DD97":"#F7C1C1"}`,marginBottom:10}}>
+              <div style={{fontSize:17,fontWeight:700,color:winner==="player"?"#27500A":"#791F1F"}}>
+                {winner==="player"?`🏆 ${player.name} ניצח!`:`💀 הפסדת! ${livesLeft} ${livesLeft===1?"חיים":"חיים"} נשארו`}
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+              {winner==="player"&&levelIdx<LEVELS.length-1&&(
+                <button onClick={()=>{setLevelIdx(levelIdx+1);setScreen("levelup");}} style={{...btn,background:"#EAF3DE",color:"#27500A",border:"0.5px solid #C0DD97",fontWeight:700}}>שלב הבא ↗</button>
+              )}
+              {winner==="player"&&levelIdx>=LEVELS.length-1&&(
+                <button onClick={()=>setScreen("gamecomplete")} style={{...btn,background:"#EAF3DE",color:"#27500A",border:"0.5px solid #C0DD97",fontWeight:700}}>🏅 ניצחון!</button>
+              )}
+              {winner==="boss"&&livesLeft>0&&(
+                <button onClick={()=>startLevel(player.id,levelIdx,livesLeft)} style={{...btn,background:"#FAEEDA",color:"#633806",border:"0.5px solid #FAC775",fontWeight:700}}>
+                  נסה שוב ({livesLeft} חיים)
+                </button>
+              )}
+              {winner==="boss"&&livesLeft<=0&&(
+                <button onClick={()=>setScreen("gameover")} style={{...btn,background:"#FCEBEB",color:"#791F1F",border:"0.5px solid #F7C1C1",fontWeight:700}}>משחק נגמר 💀</button>
+              )}
+              <button onClick={()=>{setSelectedPlayer(null);setScreen("title");}} style={{...btn}}>תפריט ראשי</button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+  return null;
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
